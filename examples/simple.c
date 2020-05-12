@@ -26,6 +26,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <jack/jack.h>
 #include <math.h>
+#include <unistd.h>
+
+unsigned int microseconds = 1000*100;
+
+
 
 void HSBToRGB(
     unsigned int inHue, unsigned int inSaturation, unsigned int inBrightness,
@@ -92,13 +97,13 @@ int main (int argc, char *argv[])
 	params.rate = 48000;
 	params.on_speed = 2.0/100.0;
 	params.off_speed = 2.0/20.0;
-	params.start_wait = 8;
-	params.start_dwell = 3;
-	params.curve_dwell = 0;
-	params.corner_dwell = 8;
-	params.curve_angle = cosf(30.0*(M_PI/180.0)); // 30 deg
-	params.end_dwell = 3;
-	params.end_wait = 7;
+	params.start_wait = 12;
+	params.start_dwell = 4;
+	params.curve_dwell = 40;
+	params.corner_dwell = 14;
+	params.curve_angle = cosf(60.0*(M_PI/180.0)); // 30 deg
+	params.end_dwell = 8;
+	params.end_wait = 2;
 	params.snap = 1/100000.0;
 	params.render_flags = RENDER_GRAYSCALE;
 
@@ -127,11 +132,14 @@ int main (int argc, char *argv[])
 
 		unsigned int r,g,b;
 		HSBToRGB(hue, saturation, brightness, &r, &g, &b);
-
+		r = 255;
+		g = 255;
+		b = 255;
 		int color = (b) + (g<<8) + (r<<16);
 
 		for(i=0; i<2; i++) {
 			olScale3(0.6, 0.6, 0.6);
+			//olScale3(1.0, 1.0, 1.0);
 
 			olRotate3Z(time * M_PI * 0.1);
 			olRotate3Y(time * M_PI * 0.8);
@@ -168,6 +176,7 @@ int main (int argc, char *argv[])
 		}
 
 		ftime = olRenderFrame(60);
+		usleep(microseconds);
 		frames++;
 		time += ftime;
 		printf("Frame time: %f, FPS:%f\n", ftime, frames/time);

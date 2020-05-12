@@ -31,6 +31,9 @@ target_link_libraries(simple ol)
 add_executable(multihead multihead.c)
 target_link_libraries(multihead ol)
 
+add_executable(play_with_dots play_with_dots.c)
+target_link_libraries(play_with_dots ol)
+
 if(UNIX AND NOT APPLE)
 add_executable(pong pong.c)
 target_link_libraries(pong ol)

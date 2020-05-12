@@ -1,7 +1,7 @@
 /*
         OpenLase - a realtime laser graphics toolkit
 
-Copyright (C) 2009-2011 Hector Martin "marcan" <hector@marcansoft.com>
+Copyright (C) 2009-2019 Hector Martin "marcan" <hector@marcansoft.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// This is the laser harp projection, which is just a simple OpenLase app */
-
 #include "libol.h"
 
 #include <stdio.h>
@@ -26,15 +24,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <jack/jack.h>
 #include <math.h>
-#include <sys/time.h>
+//#define ASPECT 0.75
+#define ASPECT 1.0
+
+//int offs[12] = {
+//	0,1,0,1,0,0,1,0,1,0,1,0
+//};
 
 int offs[12] = {
+//	0,0,0,0,0,0,0,0,0,0,0,0
 	0,1,0,1,0,0,1,0,1,0,1,0
 };
 float pos[12] = {
 	0,0.5,1,1.5,2,3,3.5,4,4.5,5,5.5,6
 };
+
+float float_pos_scaler = 1.0;
 
 int main (int argc, char *argv[])
 {
@@ -58,7 +65,6 @@ int main (int argc, char *argv[])
 		return 1;
 
 	olSetRenderParams(&params);
-//	olScale3( 3.0, 3.0, 3.0);
 
 	float time = 0;
 	float ftime;
@@ -66,38 +72,41 @@ int main (int argc, char *argv[])
 
 	int frames = 0;
 
-	int points = 24;
-	int frame_inc = 20;
+	int hue = 0;
+	int saturation = 255;
+	int brightness = 255;
+	int q=0;
 
-	struct timeval  tv_current;
-	int increment_every_ms = 1000;
+	int points =15;
 
-
-	double last_time_in_mill; // = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ;
+	//void olDot(float x, float y, int samples, uint32_t color)
 
 	while(1) {
+
 		olLoadIdentity();
 
 		int total_y = (points / 12.0 * 7.0 + 1);
 
 		for (i=0; i<points; i++) {
 			int octave = i/12;
-			float y = (octave * 7 + pos[i%12]) * 2.0 / (total_y) - 1.0;
-			float x = offs[i%12] * 0.1;
-			olDot(x, y, 5, C_WHITE);
+			float y = (octave * 7 + (float_pos_scaler*pos[i%12])) * 2.0 / (total_y) - 1.0;
+			float x = (offs[i%12] * 0.1);
+			olDot(x, y, 30, C_WHITE);
+			int bcolor = 255;
+			olRect(-1, -ASPECT, 1, ASPECT, C_GREY(bcolor > 255 ? 255 : bcolor));
+		}
+		
+		q++;
+		if (q > 5){
+			q = 0;
 		}
 
-		gettimeofday(&tv_current, NULL);
-		if (((tv_current.tv_sec * 1000) + (tv_current.tv_usec / 1000)) > (last_time_in_mill + increment_every_ms)){
-			last_time_in_mill = (tv_current.tv_sec) * 1000 + (tv_current.tv_usec) / 1000 ;
-			frame_inc++;
-		}
-
-		ftime = olRenderFrame(35);
+		ftime = olRenderFrame(60);
 		frames++;
 		time += ftime;
 		printf("Frame time: %f, FPS:%f\n", ftime, frames/time);
 	}
+
 
 	olShutdown();
 	exit (0);
